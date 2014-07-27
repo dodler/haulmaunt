@@ -15,6 +15,9 @@ public abstract class Group {
     protected int number;
     protected ArrayList<Student> students;
     
+    
+    public abstract void addStudents(String name, String sirName, String parentName);
+    public abstract void addStudents(String name, String sirName, String parentName, String birthDate);
     public abstract int getNumber();
     public abstract String getFaculty();
     public abstract ArrayList<Student> getStudents();

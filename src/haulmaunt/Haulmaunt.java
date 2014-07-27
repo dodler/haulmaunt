@@ -5,10 +5,18 @@
 package haulmaunt;
 
 import haulmaunt.lyan.student.CustomGroup;
-import haulmaunt.lyan.student.CustomStudent;
 import haulmaunt.lyan.student.Group;
 import haulmaunt.lyan.ui.CustomScreen;
+import haulmaunt.lyan.ui.MissingMouseListenerException;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.xml.parsers.ParserConfigurationException;
 import lyan.jdbc.JDBCClient;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -21,33 +29,49 @@ public class Haulmaunt {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+
         new Thread() {
             @Override
             public void run() {
                 JDBCClient client = new JDBCClient("jdbc:derby://localhost:1527/Students", "dodler", "1123");
                 client.init();
+                ArrayList<Object[]> studentData = null;
+                ArrayList<Object[]> groupData = null;
+                try {
+                    studentData = client.getStudentData();
+                    groupData = client.getGroupData();
+                } catch (SQLException ex) {
+                    Logger.getLogger(Haulmaunt.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                HashMap<String, Group> groups = new HashMap<String, Group>();
+
+                CustomScreen screen = new CustomScreen();
+
+                for (Object[] o : studentData) {
+                    
+                    if (!groups.containsKey((String)o[4])){  // предварительно добавляем группу
+                        groups.put((String)o[4], new CustomGroup((String)o[5], Integer.parseInt((String)o[4])));
+                    }
+                    
+                    if (groups.containsKey((String)o[4])){ // группа есть вв списке
+                        groups.get((String)o[4]).addStudents((String) o[1], (String) o[2], (String) o[3], (String) o[6]);
+                    }
+                }
+                screen.addGroup(groups.values());
+                try {
+                    screen.initUI();
+                } catch (ParserConfigurationException ex) {
+                    Logger.getLogger(Haulmaunt.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SAXException ex) {
+                    Logger.getLogger(Haulmaunt.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(Haulmaunt.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (MissingMouseListenerException ex) {
+                    Logger.getLogger(Haulmaunt.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
             }
         }.start();
-        
-        Group gr6207 = new CustomGroup("information", 6207);
-        gr6207.addStudents(new CustomStudent("Lyan", "Artyom", "Игоревич", Double.toString(Math.random())));
-        gr6207.addStudents(new CustomStudent("Ушакова", "Наталья", "Сергеевна", Double.toString(Math.random())));
-        gr6207.addStudents(new CustomStudent("Сайфутдинов", "Денис", "Сагитович", Double.toString(Math.random())));
-        gr6207.addStudents(new CustomStudent("Ивлиев", "Дмитрий", "Алексеевич", Double.toString(Math.random())));
-        gr6207.addStudents(new CustomStudent("Сахно", "Полина", "Алексеевна", Double.toString(Math.random())));
-
-        Group gr6208 = new CustomGroup("informa2tion", 6208);
-        gr6208.addStudents(new CustomStudent("Ly1an", "Art1yom", "Игорев1ич", Double.toString(Math.random())));
-        gr6208.addStudents(new CustomStudent("Уша1кова", "На1талья", "Сер1геевна", Double.toString(Math.random())));
-        gr6208.addStudents(new CustomStudent("Сай1футдинов", "Ден1ис", "Са1гитович", Double.toString(Math.random())));
-        gr6208.addStudents(new CustomStudent("Ивл1иев", "Дми1трий", "Алекс1еевич", Double.toString(Math.random())));
-        gr6208.addStudents(new CustomStudent("Сах1но", "Полин1а", "Алекс1еевна", Double.toString(Math.random())));
-
-        CustomScreen screen = new CustomScreen();
-
-        screen.addGroup(gr6207);
-        screen.addGroup(gr6208);
-
-        screen.initUI();
     }
 }

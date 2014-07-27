@@ -27,6 +27,11 @@ public class CustomStudent extends Student{
         this.faculty = faculty;
     }
     
+    public CustomStudent(String name, String sirName, String parentName, Group parentGroup, String faculty, String birthDate){
+        this(name, sirName, parentName, parentGroup, faculty);
+        this.birthDate = birthDate;
+    }
+    
     public CustomStudent(String name, String sirName, String parentName){
         this(name, sirName, parentName, null, "");
     }
