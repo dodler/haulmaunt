@@ -13,7 +13,7 @@ public abstract class Student {
     protected String sirName;
     protected String parentName;
     
-    protected Group parentGroup;
+    protected String groupIndex;
     protected String faculty;
     
     protected String birthDate; 
@@ -29,10 +29,10 @@ public abstract class Student {
     public abstract String getName();
     public abstract String getSirName();
     public abstract String getParentName();
-    public abstract Group getParentGroup();
+    public abstract String getGroupIndex();
     public abstract String getFaculty();
-    public abstract void setParentGroup(Group parentGroup);
-    
+    public abstract void setGroupIndex(String groupIndex);
+    public abstract void setFaculty(String faculty);
     public abstract String getBirthDate();
     
     

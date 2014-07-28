@@ -12,15 +12,20 @@ import java.util.ArrayList;
  */
 public abstract class Group {
     protected String faculty;
-    protected int number;
+    protected String groupIndex;
     protected ArrayList<Student> students;
+    protected int id;
     
     
     public abstract void addStudents(String name, String sirName, String parentName);
     public abstract void addStudents(String name, String sirName, String parentName, String birthDate);
-    public abstract int getNumber();
+    public abstract String getGroupIndex();
     public abstract String getFaculty();
     public abstract ArrayList<Student> getStudents();
+    
+    public abstract void setFaculty(String faculty);
+    public abstract void setGroupIndex(String groupIndex);
+    public abstract int getId();
     
     public abstract void addStudents(Student student);
 }

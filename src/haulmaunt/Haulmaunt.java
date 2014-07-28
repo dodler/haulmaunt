@@ -47,17 +47,18 @@ public class Haulmaunt {
                 HashMap<String, Group> groups = new HashMap<String, Group>();
 
                 CustomScreen screen = new CustomScreen();
+                screen.setDBCLient(client);
 
+                System.out.println(studentData.size());
+                
                 for (Object[] o : studentData) {
-                    
-                    if (!groups.containsKey((String)o[4])){  // предварительно добавляем группу
-                        groups.put((String)o[4], new CustomGroup((String)o[5], Integer.parseInt((String)o[4])));
-                    }
-                    
-                    if (groups.containsKey((String)o[4])){ // группа есть вв списке
-                        groups.get((String)o[4]).addStudents((String) o[1], (String) o[2], (String) o[3], (String) o[6]);
-                    }
+                    screen.addStudent((String) o[1], (String) o[2], (String) o[3], (String)o[4], (String)o[5], (String) o[6]);
                 }
+
+                for (Object[] o : groupData) {
+                    screen.addGroup((String) o[1], (String) o[2],Integer.parseInt((String)o[0]));
+                }
+
                 screen.addGroup(groups.values());
                 try {
                     screen.initUI();

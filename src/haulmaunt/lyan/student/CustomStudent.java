@@ -14,21 +14,21 @@ public class CustomStudent extends Student{
         this.name = "";
         this.sirName = "";
         this.parentName = "";
-        this.parentGroup = null;
+        this.groupIndex = "";
         this.faculty = "";
     }
     
-    public CustomStudent(String name, String sirName, String parentName, Group parentGroup, String faculty){
+    public CustomStudent(String name, String sirName, String parentName, String groupIndex, String faculty){
         this.name = name;
         this.sirName = sirName;
         this.parentName = parentName;
         
-        this.parentGroup = parentGroup;
+        this.groupIndex = groupIndex;
         this.faculty = faculty;
     }
     
-    public CustomStudent(String name, String sirName, String parentName, Group parentGroup, String faculty, String birthDate){
-        this(name, sirName, parentName, parentGroup, faculty);
+    public CustomStudent(String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate){
+        this(name, sirName, parentName, groupIndex, faculty);
         this.birthDate = birthDate;
     }
     
@@ -42,10 +42,15 @@ public class CustomStudent extends Student{
     }
     
     @Override
-    public void setParentGroup(Group parentGroup){
-        if (!parentGroup.equals(this.parentGroup)){ // запрет на установку той же самой группы
-            this.parentGroup = parentGroup;
+    public void setGroupIndex(String groupIndex){
+        if (!groupIndex.equals(this.groupIndex)){ // запрет на установку той же самой группы
+            this.groupIndex = groupIndex;
         }
+    }
+    
+    @Override
+    public void setFaculty(String faculty){
+        this.faculty = faculty;
     }
     
     @Override
@@ -62,8 +67,8 @@ public class CustomStudent extends Student{
         return this.parentName;
     }
     @Override
-    public Group getParentGroup(){
-        return this.parentGroup;
+    public String getGroupIndex(){
+        return this.groupIndex;
     }
     @Override
     public String getFaculty(){

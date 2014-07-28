@@ -30,9 +30,9 @@ public class StudentTableModel extends DefaultTableModel {
     public String getColumnName(int index) {
         switch (index) {
             case 0:
-                return "Имя";
-            case 1:
                 return "Фамилия";
+            case 1:
+                return "Имя";
             case 2:
                 return "Отчество";
             case 3:
@@ -66,7 +66,7 @@ public class StudentTableModel extends DefaultTableModel {
             case 3:
                 return students.get(rowIndex).getBirthDate();
             case 4:
-                return students.get(rowIndex).getParentGroup().getNumber();
+                return students.get(rowIndex).getGroupIndex();
             default:
                 return null;
         }

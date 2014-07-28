@@ -13,31 +13,34 @@ import java.util.Collection;
  */
 public class CustomGroup extends Group{
     
-    public CustomGroup(String faculty, int number){
+    public CustomGroup(String faculty, String groupIndex, int id){
         this.faculty = faculty;
-        this.number = number;
+        this.groupIndex = groupIndex;
+        this.id = id;
         
         students = new ArrayList<Student>();
     }
     
-    public CustomGroup(String faculty, int number, Collection<? extends Student> c){
-        this(faculty, number);
+    public CustomGroup(String faculty, String groupIndex, Collection<? extends Student> c, int id){
+        this(faculty, groupIndex, id);
         students.addAll(c);
     }
     
+    @Override
     public void addStudents(Student student){
         student.faculty = this.faculty;
-        student.parentGroup = this;
+        student.groupIndex = this.groupIndex;
         students.add(student);
     }
     
+    @Override
     public void addStudents(String name, String sirName, String parentName){
-        students.add(new CustomStudent(name, sirName, parentName, this, faculty));
+        students.add(new CustomStudent(name, sirName, parentName, this.groupIndex, faculty));
     }
     
     @Override
     public void addStudents(String name, String sirName, String parentName, String birthDate){
-        students.add(new CustomStudent(name, sirName, parentName, this, faculty, birthDate));
+        students.add(new CustomStudent(name, sirName, parentName, this.groupIndex, faculty, birthDate));
     }
     
     public void removeStudent(Student student){
@@ -61,8 +64,8 @@ public class CustomGroup extends Group{
     }
 
     @Override
-    public int getNumber() {
-        return this.number;
+    public String getGroupIndex() {
+        return this.groupIndex;
     }
 
     @Override
@@ -73,5 +76,20 @@ public class CustomGroup extends Group{
     @Override
     public ArrayList<Student> getStudents() {
         return this.students;
+    }
+
+    @Override
+    public void setFaculty(String faculty) {
+        this.faculty = faculty;
+    }
+
+    @Override
+    public void setGroupIndex(String groupIndex) {
+        this.groupIndex = groupIndex;
+    }
+    
+    @Override
+    public int getId(){
+        return this.id;
     }
 }

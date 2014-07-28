@@ -54,13 +54,20 @@ public class GroupTableModel extends DefaultTableModel{
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
             case 0:
-                return groups.get(rowIndex).getNumber();
+                return groups.get(rowIndex).getGroupIndex();
             case 1:
                 return groups.get(rowIndex).getFaculty();
             case 2:
                 return groups.get(rowIndex).getStudents().size();
+            case 3:
+                return Integer.toString(groups.get(rowIndex).getId());
             default:
                 return null;
         }
+    }
+    
+    @Override 
+    public void setValueAt(Object value, int rowIndex, int columnIndex){
+        
     }
 }

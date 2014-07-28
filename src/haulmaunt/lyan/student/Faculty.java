@@ -38,21 +38,10 @@ public class Faculty {
      * глупо получиолсь, ведь проще взять из класса группы
      * хотя может будут студенты, которых не добавили в объект группы, но их группа указана
      */
-    public ArrayList<Student> filterByGroup(Group group){
+    public ArrayList<Student> filterByGroup(String groupIndex){
         ArrayList<Student> res = new ArrayList<Student>();
         for(Student s:students){
-            if (s.getParentGroup().equals(group)){
-                res.add(s);
-            }
-        }
-        
-        return res;
-    }
-    
-    public ArrayList<Student> filterByGroup(int number){
-        ArrayList<Student> res = new ArrayList<Student>();
-        for(Student s:students){
-            if (s.getParentGroup().number == number){
+            if (s.getGroupIndex().equals(groupIndex)){
                 res.add(s);
             }
         }
