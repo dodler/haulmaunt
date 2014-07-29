@@ -34,13 +34,13 @@ public class CustomGroup extends Group{
     }
     
     @Override
-    public void addStudents(String name, String sirName, String parentName){
-        students.add(new CustomStudent(name, sirName, parentName, this.groupIndex, faculty));
+    public void addStudents(int id, String name, String sirName, String parentName){
+        students.add(new CustomStudent(id, name, sirName, parentName, this.groupIndex, faculty));
     }
     
     @Override
-    public void addStudents(String name, String sirName, String parentName, String birthDate){
-        students.add(new CustomStudent(name, sirName, parentName, this.groupIndex, faculty, birthDate));
+    public void addStudents(int id, String name, String sirName, String parentName, String birthDate){
+        students.add(new CustomStudent(id, name, sirName, parentName, this.groupIndex, faculty, birthDate));
     }
     
     public void removeStudent(Student student){

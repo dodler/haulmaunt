@@ -18,7 +18,8 @@ public class CustomStudent extends Student{
         this.faculty = "";
     }
     
-    public CustomStudent(String name, String sirName, String parentName, String groupIndex, String faculty){
+    public CustomStudent(int id, String name, String sirName, String parentName, String groupIndex, String faculty){
+        this.id = id;
         this.name = name;
         this.sirName = sirName;
         this.parentName = parentName;
@@ -27,17 +28,17 @@ public class CustomStudent extends Student{
         this.faculty = faculty;
     }
     
-    public CustomStudent(String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate){
-        this(name, sirName, parentName, groupIndex, faculty);
+    public CustomStudent(int id, String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate){
+        this(id, name, sirName, parentName, groupIndex, faculty);
         this.birthDate = birthDate;
     }
     
-    public CustomStudent(String name, String sirName, String parentName){
-        this(name, sirName, parentName, null, "");
+    public CustomStudent(int id, String name, String sirName, String parentName){
+        this(id, name, sirName, parentName, null, "");
     }
     
-    public CustomStudent(String name, String sirName, String parentName, String birthDate){
-        this(name, sirName, parentName, null, "");
+    public CustomStudent(int id, String name, String sirName, String parentName, String birthDate){
+        this(id, name, sirName, parentName, null, "");
         this.birthDate = birthDate;
     }
     
@@ -78,5 +79,10 @@ public class CustomStudent extends Student{
     @Override
     public String getBirthDate(){
         return this.birthDate;
+    }
+    
+    @Override
+    public int getId(){
+        return this.id;
     }
 }

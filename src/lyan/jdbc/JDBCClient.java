@@ -22,6 +22,30 @@ public class JDBCClient implements IJDBCClient {
     private String password;
     private Connection connection;
 
+    @Override
+    public void updateStudentData(int id, String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void removeGroup(int groupId) throws SQLException{
+        StringBuilder request = new StringBuilder();
+        request.append("delete from dodler.groups where id='");
+        request.append(Integer.toString(groupId));
+        request.append("'");
+        stat.executeUpdate(request.toString());
+    }
+
+    @Override
+    public void removeGroup(String groupIndex) throws SQLException{
+        StringBuilder request = new StringBuilder();
+        request.append("delete from dodler.groups where groupindex='");
+        request.append(groupIndex);
+        request.append("'");
+        System.out.println(request.toString());
+        stat.executeUpdate(request.toString());
+    }
+
     public static class Packet{
         String fieldToChange;
         String newValue;
@@ -45,6 +69,7 @@ public class JDBCClient implements IJDBCClient {
         request.append("','");
         request.append(groupIndex);
         request.append("')");
+        
         // insert into dodler.groups (ID, FACULTY, GROUPINDEX) values('1', 'двигателей летательных аппаратов', '2102')
         stat.executeUpdate(request.toString());
     }
@@ -78,6 +103,11 @@ public class JDBCClient implements IJDBCClient {
     
     @Override
     public void sendStudentData(ArrayList<Packet> data){
+        
+    }
+    
+    @Override
+    public void removeStudent(int id){
         
     }
     

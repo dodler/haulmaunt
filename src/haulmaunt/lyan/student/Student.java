@@ -18,11 +18,13 @@ public abstract class Student {
     
     protected String birthDate; 
     
+    protected int id; 
+    
     public Student(){
         
     }
     
-    public Student(String name, String sirName, String parentName, Group parentGroup, String faculty){
+    public Student(int id, String name, String sirName, String parentName, Group parentGroup, String faculty){
         
     }
     
@@ -34,6 +36,9 @@ public abstract class Student {
     public abstract void setGroupIndex(String groupIndex);
     public abstract void setFaculty(String faculty);
     public abstract String getBirthDate();
+    public abstract int getId();
     
     
 }
+
+

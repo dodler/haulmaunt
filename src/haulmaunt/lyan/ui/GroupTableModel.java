@@ -59,8 +59,6 @@ public class GroupTableModel extends DefaultTableModel{
                 return groups.get(rowIndex).getFaculty();
             case 2:
                 return groups.get(rowIndex).getStudents().size();
-            case 3:
-                return Integer.toString(groups.get(rowIndex).getId());
             default:
                 return null;
         }

@@ -67,6 +67,8 @@ public class StudentTableModel extends DefaultTableModel {
                 return students.get(rowIndex).getBirthDate();
             case 4:
                 return students.get(rowIndex).getGroupIndex();
+            case 5:
+                return students.get(rowIndex).getId();
             default:
                 return null;
         }

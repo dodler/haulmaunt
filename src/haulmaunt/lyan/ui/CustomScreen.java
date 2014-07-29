@@ -4,6 +4,7 @@
  */
 package haulmaunt.lyan.ui;
 
+import haulmaunt.Haulmaunt;
 import haulmaunt.lyan.student.CustomGroup;
 import haulmaunt.lyan.student.CustomStudent;
 import haulmaunt.lyan.student.Faculty;
@@ -18,17 +19,21 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import static javax.swing.WindowConstants.HIDE_ON_CLOSE;
+import javax.swing.table.DefaultTableModel;
 import javax.xml.parsers.ParserConfigurationException;
 import lyan.jdbc.IJDBCClient;
 import org.xml.sax.SAXException;
@@ -41,15 +46,17 @@ import lyan.jdbc.JDBCClient.Packet;
  */
 public class CustomScreen extends JFrame {
 
-    private JTable table; // таблица с группами
+    private CustomTable table; // таблица с группами
     private Faculty faculty; // факультет
     private ArrayList<Group> groups; // список групп 
     private ArrayList<Student> students; // список студентов
     private GroupTableModel groupTableModel;
     private StudentTableModel studentTableModel;
-    private GroupEditDialog groupEditDialog;
-    private GroupAddDialog groupAddDialog;
-    private MouseListener addGroupMouseListener = new MouseListener() {
+    private GroupEditDialog groupEditDialog; // редактирование группы
+    private GroupAddDialog groupAddDialog; // добавление группы
+    private StudentAddDialog studentAddDialog; // добавление студента
+    private StudentEditDialog studentEditDialog;  // редактирование студента
+    private MouseListener addMouseListener = new MouseListener() {
         @Override
         public void mouseClicked(MouseEvent e) {
             groupAddDialog.setVisible(true);
@@ -71,10 +78,23 @@ public class CustomScreen extends JFrame {
         public void mouseExited(MouseEvent e) {
         }
     };
-    private MouseListener editGroupMouseListener = new MouseListener() {
+    private MouseListener editMouseListener = new MouseListener() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            groupEditDialog.setVisible(true);
+            if (table.getSelectedColumn() == -1) { // если в таблице ничего не вбырано
+                JOptionPane.showMessageDialog(
+                        getParent(),
+                        "Выберите строку в таблице");
+                return;
+            }
+            if (isGroup) {
+                groupEditDialog.setVisible(true);
+            } else {
+                studentEditDialog.setVisible(true);
+            }
+
+
+
         }
 
         @Override
@@ -93,10 +113,25 @@ public class CustomScreen extends JFrame {
         public void mouseExited(MouseEvent e) {
         }
     };
-    private MouseListener removeGroupMouseListener = new MouseListener() {
+    private MouseListener removeMouseListener = new MouseListener() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            System.out.println("clicked on removeGroup");
+            if (table.getSelectedColumn() == -1) {
+                JOptionPane.showMessageDialog(
+                        getParent(),
+                        "Выберите строку в таблице");
+                return;
+            }
+            try {
+                if (isGroup) {
+                    dbClient.removeGroup(groups.get(table.getSelectedRow()).getId()); // удаляем по номеру группы
+                } else {
+                    dbClient.removeStudent(students.get(table.getSelectedRow()).getId());
+                }
+            } catch (SQLException sqle) {
+                JOptionPane.showMessageDialog(e.getComponent().getParent().getParent(), "Ошибка при удалении записи в бд");
+            }
+            table.reloadTable();
         }
 
         @Override
@@ -118,13 +153,14 @@ public class CustomScreen extends JFrame {
     private MouseListener switchStudentGroupMouseListener = new MouseListener() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (isGroup) {
+            if (!isGroup) {
                 table.setModel(groupTableModel);
+                isGroup = true;
             } else {
                 table.setModel(studentTableModel);
+                isGroup = false;
             }
             table.repaint();
-            isGroup = !isGroup;
         }
 
         @Override
@@ -174,7 +210,7 @@ public class CustomScreen extends JFrame {
         }
     };
     private JScrollPane scrollPane;
-    private boolean isGroup = true; // сейчас отображается студенты
+    private boolean isGroup = true; // сейчас отображается группы
     private IJDBCClient dbClient;
 
     public void setDBCLient(IJDBCClient dbCLient) {
@@ -195,24 +231,22 @@ public class CustomScreen extends JFrame {
         groupTableModel = new GroupTableModel(groups);
         studentTableModel = new StudentTableModel(students);
 
-        table = new JTable(studentTableModel) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;// ведь редактируем через окно
-            }
-        };
+        table = new CustomTable(studentTableModel);
         scrollPane = new JScrollPane(table);
 
         groupEditDialog = new GroupEditDialog(this, "Редактировать группу", "groupEditDialog");
         groupAddDialog = new GroupAddDialog(this, "Добавить группу", "groupAddDialog");
+
+        //studentEditDialog  = new StudentEditDialog(this, "Редактировать студента","studentEditDialog");
+        //studentAddDialog = new StudentAddDialog(this, "Добавить студента", "studentAddDialog");
     }
 
-    public void addStudent(String name, String sirName, String parentName, String groupIndex, String faculty) {
-        students.add(new CustomStudent(name, sirName, parentName, groupIndex, faculty)); // TODO могут возникнуть проблемы
+    public void addStudent(int id, String name, String sirName, String parentName, String groupIndex, String faculty) {
+        students.add(new CustomStudent(id, name, sirName, parentName, groupIndex, faculty)); // TODO могут возникнуть проблемы
     }
 
-    public void addStudent(String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate) {
-        CustomStudent cs = new CustomStudent(name, sirName, parentName, birthDate);
+    public void addStudent(int id, String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate) {
+        CustomStudent cs = new CustomStudent(id, name, sirName, parentName, birthDate);
         cs.setGroupIndex(groupIndex);
         cs.setFaculty(faculty);
         students.add(cs);
@@ -252,16 +286,16 @@ public class CustomScreen extends JFrame {
         MarkupLoader ml = MarkupLoader.getMarkupLoaderInstance();
 
         ml.mouseListeners.put("switchStudentGroup", switchStudentGroupMouseListener);
-        ml.mouseListeners.put("addGroupMouseListener", addGroupMouseListener);
-        ml.mouseListeners.put("editGroupMouseListener", editGroupMouseListener);
-        ml.mouseListeners.put("removeGroupMouseListener", removeGroupMouseListener);
+        ml.mouseListeners.put("addGroupMouseListener", addMouseListener);
+        ml.mouseListeners.put("editGroupMouseListener", editMouseListener);
+        ml.mouseListeners.put("removeGroupMouseListener", removeMouseListener);
 
         ml.LoadMarkup("main", pane);
         // вложенные layout пока не поддерживаются
 
         studentTableModel.setStudents(students);
 
-        table.setModel(studentTableModel);
+        table.setModel(groupTableModel);
 
         pane.add(scrollPane);
 
@@ -270,6 +304,8 @@ public class CustomScreen extends JFrame {
 
         this.groupEditDialog.initUI();
         groupAddDialog.initUI();
+        //studentEditDialog.initUI();
+        //studentAddDialog.initUI();
 
         pane.repaint();
     }
@@ -285,26 +321,27 @@ public class CustomScreen extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 // TODO здесь надо делать запрос в базу
-                if (!isGroup && table.getSelectedColumn() != -1) { // проверка выделенного
-
+                if (isGroup) {
                     ArrayList<Packet> data = new ArrayList<Packet>();
 
                     data.add(new Packet(
                             "faculty",
                             input2.getText(),
                             "id",
-                            table.getValueAt(table.getSelectedRow(), 2).toString()));
+                            Integer.toString(groups.get(table.getSelectedRow()).getId())));
                     data.add(new Packet(
                             "groupindex",
                             input1.getText(),
                             "id",
-                            table.getValueAt(table.getSelectedRow(), 2).toString()));
+                            Integer.toString(groups.get(table.getSelectedRow()).getId())));
                     try {
                         dbClient.updateGroupData(data);
                     } catch (SQLException ex) {
                         Logger.getLogger(CustomScreen.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                } else {
                 }
+                table.reloadTable();
             }
 
             @Override
@@ -415,12 +452,20 @@ public class CustomScreen extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try {
+
                     // insert into dodler.groups (ID, FACULTY, GROUPINDEX) values('1', 'двигателей летательных аппаратов', '2102')
-                    dbClient.addGroupData(table.getRowCount(), groupIndex.getText(), faculty.getText());
+                    dbClient.addGroupData(
+                            CustomScreen.getDateHash(),
+                            groupIndex.getText(),
+                            faculty.getText());
                 } catch (SQLException ex) {
                     // тут сделать вывод окошка
                     Logger.getLogger(CustomScreen.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(
+                            getParent(),
+                            "Произошла ошибка при запросе в БД. Проверьте введенные данные");
                 }
+                table.reloadTable();
             }
 
             @Override
@@ -479,5 +524,94 @@ public class CustomScreen extends JFrame {
             repaint();
 
         }
+    }
+
+    class StudentAddDialog extends JDialog {
+
+        public void initUI() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    class StudentEditDialog extends JDialog {
+
+        public void initUI() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * таблица, которая отображается программе запрет на редактирование ячеек и
+     * перезагрузка данных из бд
+     */
+    class CustomTable extends JTable {
+
+        public CustomTable(DefaultTableModel model) {
+            super(model);
+        }
+
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;// ведь редактируем через окно
+        }
+
+        public void reloadTable() {
+            ArrayList<Object[]> studentData = null;
+            ArrayList<Object[]> groupData = null;
+            try {
+                studentData = dbClient.getStudentData();
+                groupData = dbClient.getGroupData();
+            } catch (SQLException ex) {
+                Logger.getLogger(Haulmaunt.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            HashMap<String, Group> groupMap = new HashMap<String, Group>();
+
+            students.clear();
+            groups.clear();
+            for (int i = 0; i < studentTableModel.getRowCount(); i++) {
+                studentTableModel.removeRow(0);
+            }
+
+            for (int i = 0; i < groupTableModel.getRowCount(); i++) {
+                groupTableModel.removeRow(0);
+            }
+
+            for (Object[] o : studentData) {
+                addStudent(Integer.parseInt((String) o[0]), (String) o[1], (String) o[2], (String) o[3], (String) o[4], (String) o[5], (String) o[6]);
+            }
+
+            for (Object[] o : groupData) {
+                addGroup((String) o[1], (String) o[2], Integer.parseInt((String) o[0]));
+            }
+            studentTableModel.setStudents(students);
+            groupTableModel.setGroups(groups);
+            
+            if (isGroup){
+                setModel(groupTableModel);
+            }else{
+                setModel(studentTableModel);
+            }
+
+            repaint();
+        }
+    }
+
+    public static int getDateHash() {
+        Calendar c = Calendar.getInstance();
+        StringBuilder hashDateBuilder = new StringBuilder(); // делаем хеш из даты
+        hashDateBuilder.append(c.get(Calendar.YEAR));
+        hashDateBuilder.append(".");
+        hashDateBuilder.append(c.get(Calendar.DAY_OF_YEAR));
+        hashDateBuilder.append(".");
+        hashDateBuilder.append(c.get(Calendar.HOUR));
+        hashDateBuilder.append(".");
+        hashDateBuilder.append(c.get(Calendar.MINUTE));
+        hashDateBuilder.append(".");
+        hashDateBuilder.append(c.get(Calendar.SECOND));
+        hashDateBuilder.append(".");
+        hashDateBuilder.append(c.get(Calendar.MILLISECOND));
+        System.out.println(hashDateBuilder.toString());
+        return hashDateBuilder.hashCode();
     }
 }

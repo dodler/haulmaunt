@@ -17,8 +17,8 @@ public abstract class Group {
     protected int id;
     
     
-    public abstract void addStudents(String name, String sirName, String parentName);
-    public abstract void addStudents(String name, String sirName, String parentName, String birthDate);
+    public abstract void addStudents(int id, String name, String sirName, String parentName);
+    public abstract void addStudents(int id, String name, String sirName, String parentName, String birthDate);
     public abstract String getGroupIndex();
     public abstract String getFaculty();
     public abstract ArrayList<Student> getStudents();

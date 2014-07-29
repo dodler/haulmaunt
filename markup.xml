@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <layout name="main">
-	<button name = "addGroup" x='150' y='400' width='150' height='30' label = 'Добавить группу' mouseListener='addGroupMouseListener' />
-	<button name = "editGroup" x='300' y='400' width='150' height='30' label = 'Редактировать группу' mouseListener='editGroupMouseListener' />
-	<button name = "removeGroup" x='450' y='400' width='160' height='30' label = 'Удалить группу' mouseListener='removeGroupMouseListener'/>
+	<button name = "addGroup" x='150' y='400' width='150' height='30' label = 'Добавить' mouseListener='addGroupMouseListener' />
+	<button name = "editGroup" x='300' y='400' width='150' height='30' label = 'Изменить' mouseListener='editGroupMouseListener' />
+	<button name = "removeGroup" x='450' y='400' width='160' height='30' label = 'Удалить' mouseListener='removeGroupMouseListener'/>
 	
-	<button name = "switchSG" x = '500' y = '200' width = '150' height = '30' label = "Сменить отображение" mouseListener = 'switchStudentGroup' />
+	<button name = "switchSG" x = '500' y = '200' width = '150' height = '30' label = "Студенты/группы" mouseListener = 'switchStudentGroup' />
 	
 	<!--<dialog name = "groupEditDialog" label = "Редактировать группу" type = "GroupEditDialog" x = '200' y = '200' width = '400' height = '500'>
 		<button name = "accept" x = '50' y = '200' width = '150' height = '30' label = 'Сохранить изменения' mouseListener = "acceptGroupChanges" />

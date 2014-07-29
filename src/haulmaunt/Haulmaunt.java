@@ -48,11 +48,9 @@ public class Haulmaunt {
 
                 CustomScreen screen = new CustomScreen();
                 screen.setDBCLient(client);
-
-                System.out.println(studentData.size());
                 
                 for (Object[] o : studentData) {
-                    screen.addStudent((String) o[1], (String) o[2], (String) o[3], (String)o[4], (String)o[5], (String) o[6]);
+                    screen.addStudent(Integer.parseInt((String)o[0]),(String) o[1], (String) o[2], (String) o[3], (String)o[4], (String)o[5], (String) o[6]);
                 }
 
                 for (Object[] o : groupData) {
