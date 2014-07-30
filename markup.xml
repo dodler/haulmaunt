@@ -5,6 +5,7 @@
 	<button name = "removeGroup" x='450' y='400' width='160' height='30' label = 'Удалить' mouseListener='removeGroupMouseListener'/>
 	
 	<button name = "switchSG" x = '500' y = '200' width = '150' height = '30' label = "Студенты/группы" mouseListener = 'switchStudentGroup' />
+	<button name = "acceptFilter" x = '500' y = '250' width = '150' height = '30' label = "Применить фильтр" mouseListener = 'acceptFilterHandler' />
 	
 	<!--<dialog name = "groupEditDialog" label = "Редактировать группу" type = "GroupEditDialog" x = '200' y = '200' width = '400' height = '500'>
 		<button name = "accept" x = '50' y = '200' width = '150' height = '30' label = 'Сохранить изменения' mouseListener = "acceptGroupChanges" />

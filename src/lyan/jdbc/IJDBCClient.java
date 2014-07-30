@@ -17,8 +17,14 @@ public interface IJDBCClient {
 
     public ArrayList<Object[]> getStudentData() throws SQLException;
     
-    public void sendStudentData(ArrayList<JDBCClient.Packet> data)throws SQLException;
-    public void updateStudentData(int id, String name, String sirName, String parentName, String groupIndex, String faculty, String birthDate);
+    public void addStudentData(int id,
+            String name,
+            String sirName,
+            String parentName,
+            String groupNumber,
+            String faculty,
+            String birthDate) throws SQLException;
+    public void updateStudentData(ArrayList<JDBCClient.Packet> data) throws SQLException;
     
     public void updateGroupData(ArrayList<JDBCClient.Packet> data) throws SQLException;
     public void addGroupData(int groupNum, String groupIndex, String faculty) throws SQLException;

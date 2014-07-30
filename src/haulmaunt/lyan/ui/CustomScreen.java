@@ -32,8 +32,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import static javax.swing.WindowConstants.HIDE_ON_CLOSE;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import javax.xml.parsers.ParserConfigurationException;
 import lyan.jdbc.IJDBCClient;
 import org.xml.sax.SAXException;
@@ -59,7 +61,11 @@ public class CustomScreen extends JFrame {
     private MouseListener addMouseListener = new MouseListener() {
         @Override
         public void mouseClicked(MouseEvent e) {
-            groupAddDialog.setVisible(true);
+            if (isGroup) {
+                groupAddDialog.setVisible(true);
+            } else {
+                studentAddDialog.setVisible(true);
+            }
         }
 
         @Override
@@ -156,7 +162,21 @@ public class CustomScreen extends JFrame {
             if (!isGroup) {
                 table.setModel(groupTableModel);
                 isGroup = true;
+
+                studentNameFilter.setVisible(false);
+                groupNumberFilter.setVisible(false);
+
+                nameFilterLabel.setVisible(false);
+                groupNumberLabel.setVisible(false);
+
             } else {
+                
+                studentNameFilter.setVisible(true);
+                groupNumberFilter.setVisible(true);
+
+                nameFilterLabel.setVisible(true);
+                groupNumberLabel.setVisible(true);
+                
                 table.setModel(studentTableModel);
                 isGroup = false;
             }
@@ -209,14 +229,53 @@ public class CustomScreen extends JFrame {
         public void windowDeactivated(WindowEvent e) {
         }
     };
+    
+    private MouseListener acceptFilterHandler = new MouseListener(){
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (studentNameFilter.getText().length() != 0 || groupNumberFilter.getText().length() != 0){
+                sorter.setRowFilter(filter);
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            
+        }
+        
+    };
+    
     private JScrollPane scrollPane;
     private boolean isGroup = true; // сейчас отображается группы
     private IJDBCClient dbClient;
+    private JTextField studentNameFilter; // фильм имен студентов
+    private JLabel nameFilterLabel;
+    private JTextField groupNumberFilter; // фильтр номеров групп
+    private JLabel groupNumberLabel;
+    private RowFilter<Object, Object> filter; //объект фильтра
 
     public void setDBCLient(IJDBCClient dbCLient) {
         this.dbClient = dbCLient;
     }
 
+    private TableRowSorter<StudentTableModel> sorter;
+    
     public CustomScreen() {
         super("Приложение для работы со студентами");
         this.setName("main");
@@ -237,8 +296,34 @@ public class CustomScreen extends JFrame {
         groupEditDialog = new GroupEditDialog(this, "Редактировать группу", "groupEditDialog");
         groupAddDialog = new GroupAddDialog(this, "Добавить группу", "groupAddDialog");
 
-        //studentEditDialog  = new StudentEditDialog(this, "Редактировать студента","studentEditDialog");
-        //studentAddDialog = new StudentAddDialog(this, "Добавить студента", "studentAddDialog");
+        studentEditDialog = new StudentEditDialog(this, "Редактировать студента", "studentEditDialog");
+        studentAddDialog = new StudentAddDialog(this, "Добавить студента", "studentAddDialog");
+
+        studentNameFilter = new JTextField();
+        groupNumberFilter = new JTextField();
+
+        nameFilterLabel = new JLabel("Фамилия");
+        groupNumberLabel = new JLabel("Номер группы");
+
+        filter = new RowFilter<Object, Object>() {
+            @Override
+            public boolean include(RowFilter.Entry<? extends Object, ? extends Object> entry) {
+                if (!isGroup) {
+                    return true; //не фильтровать таблицу групп
+                }
+                String name = studentNameFilter.getText(), group = groupNumberFilter.getText();
+                if ((name.equals("")
+                        || name.equals(entry.getStringValue(0))) &&// если текстовые поля не пусты
+                        (group.equals("")
+                        || group.equals(entry.getStringValue(3)))) {
+                    return true;
+                }
+                return false;
+            }
+        };
+        sorter = new TableRowSorter<StudentTableModel>(studentTableModel);
+        sorter.setRowFilter(filter);
+        table.setRowSorter(sorter);
     }
 
     public void addStudent(int id, String name, String sirName, String parentName, String groupIndex, String faculty) {
@@ -289,9 +374,26 @@ public class CustomScreen extends JFrame {
         ml.mouseListeners.put("addGroupMouseListener", addMouseListener);
         ml.mouseListeners.put("editGroupMouseListener", editMouseListener);
         ml.mouseListeners.put("removeGroupMouseListener", removeMouseListener);
+        ml.mouseListeners.put("acceptFilterHandler", acceptFilterHandler);
 
         ml.LoadMarkup("main", pane);
         // вложенные layout пока не поддерживаются
+
+        studentNameFilter.setBounds(500, 300, 100, 30);
+        groupNumberFilter.setBounds(610, 300, 100, 30);
+        nameFilterLabel.setBounds(500, 270, 150, 30);
+        groupNumberLabel.setBounds(610, 270, 150, 30);
+        
+        studentNameFilter.setVisible(false);
+        groupNumberFilter.setVisible(false);
+        nameFilterLabel.setVisible(false);
+        groupNumberLabel.setVisible(false);
+
+        pane.add(studentNameFilter);
+        pane.add(groupNumberFilter);
+        pane.add(nameFilterLabel);
+        pane.add(groupNumberLabel);
+
 
         studentTableModel.setStudents(students);
 
@@ -304,8 +406,8 @@ public class CustomScreen extends JFrame {
 
         this.groupEditDialog.initUI();
         groupAddDialog.initUI();
-        //studentEditDialog.initUI();
-        //studentAddDialog.initUI();
+        studentEditDialog.initUI();
+        studentAddDialog.initUI();
 
         pane.repaint();
     }
@@ -528,15 +630,355 @@ public class CustomScreen extends JFrame {
 
     class StudentAddDialog extends JDialog {
 
+        private JButton accept, deny;
+        private JTextField sName, sSirName, sParentName, sGroupNumber, sFaculty, sBirthDate;
+        private JLabel lName, lSirname, lParentName, lGroupNumber, lFaculty, lBirthDate;
+        private MouseListener acceptMouseListener = new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    dbClient.addStudentData(
+                            CustomScreen.getDateHash(),
+                            sName.getText(),
+                            sSirName.getText(),
+                            sParentName.getText(),
+                            sGroupNumber.getText(),
+                            sFaculty.getText(),
+                            sBirthDate.getText());
+                } catch (SQLException ex) {
+                    // тут сделать вывод окошка
+                    Logger.getLogger(CustomScreen.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(
+                            getParent(),
+                            "Произошла ошибка при запросе в БД. Проверьте введенные данные");
+                }
+                table.reloadTable();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        };
+        private MouseListener denyMouseListener = new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                sName.setText("");
+                sSirName.setText("");
+                sParentName.setText("");
+                sGroupNumber.setText("");
+                sFaculty.setText("");
+                sBirthDate.setText("");
+                setVisible(false);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        };
+
+        public StudentAddDialog(JFrame parent, String title, String name) {
+            super(parent, title);
+            setName(name);
+
+            this.setDefaultCloseOperation(HIDE_ON_CLOSE);
+
+            setLayout(null);
+            setModal(true);
+            setResizable(false);
+
+            accept = new JButton("ОК");
+            deny = new JButton("Отменить");
+
+            sName = new JTextField();
+            sSirName = new JTextField();
+            sParentName = new JTextField();
+            sGroupNumber = new JTextField();
+            sFaculty = new JTextField();
+            sBirthDate = new JTextField();
+
+            lName = new JLabel("Имя");
+            lSirname = new JLabel("Фамилия");
+            lParentName = new JLabel("Отчество");
+            lGroupNumber = new JLabel("Номер группы");
+            lFaculty = new JLabel("Факультет");
+            lBirthDate = new JLabel("Дата рождения");
+            setSize(500, 500);
+
+            sName.setBounds(10, 150, 70, 30);
+            sSirName.setBounds(100, 150, 70, 30);
+            sParentName.setBounds(190, 150, 70, 30);
+            sGroupNumber.setBounds(10, 200, 70, 30);
+            sFaculty.setBounds(100, 200, 70, 30);
+            sBirthDate.setBounds(190, 200, 70, 30);
+
+            lName.setBounds(10, 120, 100, 30);
+            lSirname.setBounds(100, 120, 100, 30);
+            lParentName.setBounds(190, 120, 100, 30);
+            lGroupNumber.setBounds(10, 180, 100, 30);
+            lFaculty.setBounds(100, 180, 100, 30);
+            lBirthDate.setBounds(190, 180, 100, 30);
+
+            accept.setBounds(300, 400, 100, 30);
+            deny.setBounds(350, 400, 100, 30);
+
+            deny.addMouseListener(denyMouseListener);
+            accept.addMouseListener(acceptMouseListener);
+        }
+
         public void initUI() {
-            throw new UnsupportedOperationException();
+            Container pane = getContentPane();
+
+            pane.add(sName);
+            pane.add(sSirName);
+            pane.add(sParentName);
+            pane.add(sGroupNumber);
+            pane.add(sFaculty);
+            pane.add(sBirthDate);
+
+            pane.add(lName);
+            pane.add(lSirname);
+            pane.add(lParentName);
+            pane.add(lGroupNumber);
+            pane.add(lFaculty);
+            pane.add(lBirthDate);
+
+            pane.add(accept);
+            pane.add(deny);
+
+            repaint();
+
         }
     }
 
     class StudentEditDialog extends JDialog {
 
+        /**
+         * метод позволяет задать начальные значения текстовых полей окна
+         * редактирования студентов
+         *
+         * @param name
+         * @param sirName
+         * @param parentName
+         * @param parentName
+         * @param groupNumber
+         * @param faculty
+         * @param birthDate етод
+         */
+        public void setInitialValues(String name,
+                String sirName,
+                String parentName,
+                String groupNumber,
+                String faculty,
+                String birthDate) {
+            sName.setText(name);
+            sSirName.setText(sirName);
+            sParentName.setText(parentName);
+            sGroupNumber.setText(groupNumber);
+            sFaculty.setText(faculty);
+            sBirthDate.setText(birthDate);
+        }
+        JButton accept, deny;
+        JTextField sName, sSirName, sParentName, sGroupNumber, sFaculty, sBirthDate;
+        JLabel lName, lSirName, lParentName, lGroupNumber, lFaculty, lBirthDate;
+        private MouseListener acceptMouseListener = new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+
+                ArrayList<Packet> data = new ArrayList<Packet>();
+                Packet p;
+
+                p = new Packet(
+                        "name",
+                        sName.getText(),
+                        "id",
+                        Integer.toString(students.get(table.getSelectedRow()).getId()));
+                data.add(p);
+
+                p = new Packet(
+                        "sirname",
+                        sSirName.getText(),
+                        "id",
+                        Integer.toString(students.get(table.getSelectedRow()).getId()));
+                data.add(p);
+
+                p = new Packet(
+                        "parentname",
+                        sParentName.getText(),
+                        "id",
+                        Integer.toString(students.get(table.getSelectedRow()).getId()));
+                data.add(p);
+                p = new Packet(
+                        "groupnumber",
+                        sGroupNumber.getText(),
+                        "id",
+                        Integer.toString(students.get(table.getSelectedRow()).getId()));
+                data.add(p);
+
+                p = new Packet(
+                        "faculty",
+                        sFaculty.getText(),
+                        "id",
+                        Integer.toString(students.get(table.getSelectedRow()).getId()));
+                data.add(p);
+                p = new Packet(
+                        "birthdate",
+                        sBirthDate.getText(),
+                        "id",
+                        Integer.toString(students.get(table.getSelectedRow()).getId()));
+                data.add(p);
+
+                try {
+                    dbClient.updateStudentData(data);
+                } catch (SQLException ex) {
+                    // тут сделать вывод окошка
+                    Logger.getLogger(CustomScreen.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(
+                            getParent(),
+                            "Произошла ошибка при запросе в БД. Проверьте введенные данные");
+                }
+                table.reloadTable();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        };
+        private MouseListener denyMouseListener = new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                sName.setText("");
+                sSirName.setText("");
+                sParentName.setText("");
+                sGroupNumber.setText("");
+                sFaculty.setText("");
+                sBirthDate.setText("");
+                setVisible(false);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+        };
+
+        public StudentEditDialog(JFrame parent, String title, String name) {
+            super(parent, title);
+            setName(name);
+
+            this.setDefaultCloseOperation(HIDE_ON_CLOSE);
+
+            setLayout(null);
+            setModal(true);
+            setResizable(false);
+
+            accept = new JButton("ОК");
+            deny = new JButton("Отменить");
+
+            sName = new JTextField();
+            sSirName = new JTextField();
+            sParentName = new JTextField();
+            sGroupNumber = new JTextField();
+            sFaculty = new JTextField();
+            sBirthDate = new JTextField();
+
+            lName = new JLabel("Имя");
+            lSirName = new JLabel("Фамилия");
+            lParentName = new JLabel("Отчество");
+            lGroupNumber = new JLabel("Номер группы");
+            lFaculty = new JLabel("Факультет");
+            lBirthDate = new JLabel("Дата рождения");
+            setSize(500, 500);
+
+            sName.setBounds(10, 150, 70, 30);
+            sSirName.setBounds(100, 150, 70, 30);
+            sParentName.setBounds(190, 150, 70, 30);
+            sGroupNumber.setBounds(10, 200, 70, 30);
+            sFaculty.setBounds(100, 200, 70, 30);
+            sBirthDate.setBounds(190, 200, 70, 30);
+
+            lName.setBounds(10, 120, 100, 30);
+            lSirName.setBounds(100, 120, 100, 30);
+            lParentName.setBounds(190, 120, 100, 30);
+            lGroupNumber.setBounds(10, 180, 100, 30);
+            lFaculty.setBounds(100, 180, 100, 30);
+            lBirthDate.setBounds(190, 180, 100, 30);
+
+            accept.setBounds(300, 400, 100, 30);
+            deny.setBounds(360, 400, 100, 30);
+
+            deny.addMouseListener(denyMouseListener);
+            accept.addMouseListener(acceptMouseListener);
+        }
+
         public void initUI() {
-            throw new UnsupportedOperationException();
+            Container pane = getContentPane();
+
+            pane.add(sName);
+            pane.add(sSirName);
+            pane.add(sParentName);
+            pane.add(sGroupNumber);
+            pane.add(sFaculty);
+            pane.add(sBirthDate);
+
+            pane.add(lName);
+            pane.add(lSirName);
+            pane.add(lParentName);
+            pane.add(lGroupNumber);
+            pane.add(lFaculty);
+            pane.add(lBirthDate);
+
+            pane.add(accept);
+            pane.add(deny);
+
+            repaint();
+
         }
     }
 
@@ -586,10 +1028,10 @@ public class CustomScreen extends JFrame {
             }
             studentTableModel.setStudents(students);
             groupTableModel.setGroups(groups);
-            
-            if (isGroup){
+
+            if (isGroup) {
                 setModel(groupTableModel);
-            }else{
+            } else {
                 setModel(studentTableModel);
             }
 
